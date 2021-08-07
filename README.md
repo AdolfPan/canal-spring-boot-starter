@@ -1,3 +1,3 @@
-## canal starter
----
-canal client scaffold。
+### canal starter
+***
+canal client scaffold
