@@ -19,10 +19,9 @@ import java.util.Set;
 public class Instance {
 
     /**
-     * 是否开启集群模式
+     * 库
      */
-    private boolean clusterEnabled;
-
+    private String schema;
     /**
      * zookeeper地址
      */
@@ -30,15 +29,14 @@ public class Instance {
 
     /**
      * canal server host address
-     * 默认是本地的环回地址
      */
-    private String host = "127.1.1.1";
+    private String host = "127.0.0.1";
 
     /**
      * canal server port
      * 默认 11111
      */
-    private int port = 11111;
+    private String port = "11111";
 
     /**
      * 集群--设置的用户名
@@ -58,7 +56,7 @@ public class Instance {
     /**
      * 是否有过滤规则
      */
-    private String filter;
+    private String filter = ".*\\..*";
 
     /**
      * 当错误发生时，重试次数
@@ -66,10 +64,8 @@ public class Instance {
     private int retryTimes = 5;
 
     /**
-     * 信息捕获心跳时间
-     * 单位：毫秒
+     * 心跳间隔 单位：毫秒
      */
-    private long acquireInterval = 1000;
-
+    private long heartbeatInterval = 1000;
 
 }

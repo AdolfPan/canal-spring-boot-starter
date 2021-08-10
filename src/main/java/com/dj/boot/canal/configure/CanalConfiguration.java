@@ -22,5 +22,7 @@ import java.util.Map;
 @Configuration
 @ConfigurationProperties(prefix = "dj.canal")
 public class CanalConfiguration {
+
     private Map<String, Instance> instances = Maps.newLinkedHashMap();
+
 }
