@@ -5,12 +5,14 @@ import com.alibaba.otter.canal.client.CanalConnectors;
 import com.alibaba.otter.canal.client.impl.ClusterCanalConnector;
 import com.alibaba.otter.canal.client.impl.ClusterNodeAccessStrategy;
 import com.alibaba.otter.canal.client.impl.SimpleCanalConnector;
+import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
 import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import com.dj.boot.canal.configure.CanalConfiguration;
 import com.dj.boot.canal.message.Converter;
 import com.dj.boot.canal.message.DefaultConverter;
 import com.dj.boot.canal.valobj.Instance;
+import com.dj.boot.canal.valobj.RocketMQConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.Assert;
@@ -88,9 +90,29 @@ public abstract class AbstractClient implements Client {
      * @return
      */
     private CanalConnector buildEntry(Map.Entry<String, Instance> instanceEntry) {
+        return process(instanceEntry);
+    }
+
+    private CanalConnector process(Map.Entry<String, Instance> instanceEntry) {
+        CanalConnector canalConnector = null;
+        Instance instance = instanceEntry.getValue();
+        final String mode = instance.getMode();
+        switch (mode) {
+            case "tcp":
+                canalConnector = buildOfTcp(instanceEntry);
+                break;
+            case "rocketMQ":
+                canalConnector = buildOfRocketMQ(instanceEntry);
+                break;
+            default:
+                break;
+        }
+        return canalConnector;
+    }
+
+    private CanalConnector buildOfTcp(Map.Entry<String, Instance> instanceEntry) {
         Instance instance = instanceEntry.getValue();
         CanalConnector connector = null;
-
         if (StringUtils.isNotBlank(instance.getHost())) {
             InetSocketAddress inetSocketAddress = new InetSocketAddress(instance.getHost(), Integer.parseInt(instance.getPort()));
             connector = CanalConnectors.newSingleConnector(inetSocketAddress, instanceEntry.getKey(), instance.getUserName(), instance.getPassword());
@@ -114,6 +136,30 @@ public abstract class AbstractClient implements Client {
             return connector;
         }
         return null;
+    }
+
+    private RocketMQCanalConnector buildOfRocketMQ(Map.Entry<String, Instance> instanceEntry) {
+        Instance instance = instanceEntry.getValue();
+        RocketMQConfig mqConfig = instance.getMqConfig();
+        RocketMQCanalConnector connector = new RocketMQCanalConnector(
+                mqConfig.getNameServers(),
+                mqConfig.getTopic(),
+                mqConfig.getGroupId(),
+                mqConfig.getAccessKey(),
+                mqConfig.getSecretKey(),
+                -1,
+                true,
+                mqConfig.isTrace(),
+                null,
+                mqConfig.getAccessChannel(),
+                mqConfig.getNamespace());
+
+        if (Objects.nonNull(connector)) {
+            connector.connect();
+            connector.subscribe();
+            return connector;
+        }
+        return connector;
     }
 
 }

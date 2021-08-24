@@ -34,7 +34,8 @@ public abstract class AbstractBasicMessageTransponder extends AbstractMessageCon
             log.warn("message is empty.");
         }
         List<CommonMessage> commonMessages = MessageUtil.convert(message, config.getSchema());
-        if (!CollectionUtils.isEmpty(subscribers)) {
+        if (!CollectionUtils.isEmpty(subscribers)
+                && !CollectionUtils.isEmpty(commonMessages)) {
             subscribers.stream().forEach(listener -> {
                 listener.watch(commonMessages);
             });

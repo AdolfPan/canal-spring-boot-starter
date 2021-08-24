@@ -33,11 +33,8 @@ public class CanalLauncherConfiguration {
 
     @Bean
     private Client canalClient() {
-        log.info("CanalLauncher trying to connect canal.cli...");
         Client canalClient = new CanalClient(canalConfiguration);
-        log.info("CanalLauncher trying to open canal.cli...");
         canalClient.init();
-        log.info("CanalLauncher launch canal.cli success.");
         return canalClient;
     }
 

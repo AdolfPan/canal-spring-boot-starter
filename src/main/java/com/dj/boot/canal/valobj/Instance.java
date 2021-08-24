@@ -1,7 +1,8 @@
 package com.dj.boot.canal.valobj;
 
-import lombok.Data;
+import lombok.*;
 
+import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -10,13 +11,18 @@ import java.util.Set;
  * <p>canal配置信息</p>
  *
  * <br>
- *
  * @author panrusen
  * @version 1.0
  * @date 2021/8/6 下午4:08
  */
 @Data
-public class Instance {
+public class Instance implements Serializable {
+
+    /**
+     * 接收模式
+     * 支持tcp kafka rocketMQ
+     */
+    private String mode = "tcp";
 
     /**
      * 库
@@ -67,5 +73,16 @@ public class Instance {
      * 心跳间隔 单位：毫秒
      */
     private long heartbeatInterval = 1000;
+
+    /**
+     * rocket mq cfg
+     */
+    private RocketMQConfig mqConfig;
+
+    /**
+     * kafka cfg
+     */
+    private KafkaConfig kafkaConfig;
+
 
 }
