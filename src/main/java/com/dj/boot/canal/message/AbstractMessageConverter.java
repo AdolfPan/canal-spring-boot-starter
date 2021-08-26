@@ -2,6 +2,7 @@ package com.dj.boot.canal.message;
 
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
+import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import com.dj.boot.canal.valobj.Instance;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -105,15 +107,14 @@ public abstract class AbstractMessageConverter implements MessageConverter {
     private void processRocketMQ(Instance config, RocketMQCanalConnector connector) {
         try {
             while (running && !Thread.currentThread().isInterrupted()) {
-                List<Message> msgs = connector.getListWithoutAck(1000L, TimeUnit.MILLISECONDS);
-                if (!CollectionUtils.isEmpty(msgs)) {
-                    for (Message msg : msgs) {
-                        long batchId = msg.getId();
-                        int size = msg.getEntries().size();
-                        if (batchId == -1 || size == 0) {
+                List<FlatMessage> flatListWithoutAck = connector.getFlatListWithoutAck(1000L, TimeUnit.MILLISECONDS);
+                if (!CollectionUtils.isEmpty(flatListWithoutAck)) {
+                    for (FlatMessage flatMessage : flatListWithoutAck) {
+                        long batchId = flatMessage.getId();
+                        if (batchId == -1 || flatMessage.getData() == null) {
                             Thread.sleep(config.getHeartbeatInterval());
                         } else {
-                            postMsg(msg);
+                            postMsg(flatMessage);
                         }
                     }
                 }
@@ -128,7 +129,7 @@ public abstract class AbstractMessageConverter implements MessageConverter {
      * 提交
      * @param message
      */
-    protected abstract void postMsg(Message message);
+    protected abstract void postMsg(Serializable message);
 
     /**
      * 停止

@@ -147,7 +147,7 @@ public abstract class AbstractClient implements Client {
                 mqConfig.getGroupId(),
                 mqConfig.getAccessKey(),
                 mqConfig.getSecretKey(),
-                -1,
+                instance.getBatchSize(),
                 true,
                 mqConfig.isTrace(),
                 null,

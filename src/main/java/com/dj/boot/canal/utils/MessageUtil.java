@@ -1,11 +1,14 @@
 package com.dj.boot.canal.utils;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 import com.dj.boot.canal.message.CommonMessage;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
@@ -100,6 +103,44 @@ public final class MessageUtil {
             }
         }
         return msgs;
+    }
+
+
+    public static List<CommonMessage> convert(FlatMessage message, String schema) {
+        if (message == null) {
+            return null;
+        }
+        if (StringUtils.isNotBlank(schema) && !StringUtils.equals(message.getTable(), schema)) {
+            return null;
+        }
+        List<CommonMessage> rstList = Lists.newLinkedList();
+        final CommonMessage msg = new CommonMessage();
+        msg.setIsDdl(message.getIsDdl());
+        msg.setDatabase(message.getDatabase());
+        msg.setTable(message.getTable());
+        msg.setType(message.getType());
+        msg.setTimeStamp(System.currentTimeMillis());
+        msg.setSql(message.getSql());
+        msg.setPkNames(message.getPkNames());
+        List<Map<String, Object>> data = Lists.newArrayList();
+        if (!message.getIsDdl()) {
+            for (Map<String, String> datum : message.getData()) {
+                if (!CollectionUtils.isEmpty(datum)) {
+                    Iterator<String> iterator = datum.keySet().iterator();
+                    while (iterator.hasNext()) {
+                        String next = iterator.next();
+                        Map put = Maps.newLinkedHashMap();
+                        put.put(next, datum.get(next));
+                        data.add(put);
+                    }
+                }
+            }
+            if (!CollectionUtils.isEmpty(data)) {
+                msg.setData(data);
+            }
+        }
+        rstList.add(msg);
+        return rstList;
     }
 
 }
