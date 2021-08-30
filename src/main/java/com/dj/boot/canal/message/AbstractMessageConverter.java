@@ -93,43 +93,43 @@ public abstract class AbstractMessageConverter implements MessageConverter {
     }
 
     private void processTcp(Instance config, CanalConnector connector) throws InterruptedException {
-        Message message = connector.getWithoutAck(config.getBatchSize());
-        long batchId = message.getId();
-        int size = message.getEntries().size();
-        if (batchId == -1 || size == 0) {
-            Thread.sleep(config.getHeartbeatInterval());
-        } else {
-            postMsg(message);
+        try {
+            while (running && !Thread.currentThread().isInterrupted()) {
+                Message message = connector.getWithoutAck(config.getBatchSize());
+                long batchId = message.getId();
+                int size = message.getEntries().size();
+                if (batchId == -1 || size == 0) {
+                    Thread.sleep(config.getHeartbeatInterval());
+                } else {
+                    postMsg(message, connector);
+                }
+            }
+        } catch (CanalClientException | InterruptedException e) {
+            e.printStackTrace();
+            log.error("ProcessRocketMQ processTcp error. ex: ", e);
         }
-        connector.ack(batchId);
     }
 
     private void processRocketMQ(Instance config, RocketMQCanalConnector connector) {
         try {
             while (running && !Thread.currentThread().isInterrupted()) {
                 List<FlatMessage> flatListWithoutAck = connector.getFlatListWithoutAck(1000L, TimeUnit.MILLISECONDS);
-                if (!CollectionUtils.isEmpty(flatListWithoutAck)) {
-                    for (FlatMessage flatMessage : flatListWithoutAck) {
-                        long batchId = flatMessage.getId();
-                        if (batchId == -1 || flatMessage.getData() == null) {
-                            Thread.sleep(config.getHeartbeatInterval());
-                        } else {
-                            postMsg(flatMessage);
-                        }
-                    }
+                if (CollectionUtils.isEmpty(flatListWithoutAck)) {
+                    Thread.sleep(config.getHeartbeatInterval());
                 }
-                connector.ack();
+                postMsg(flatListWithoutAck, connector);
             }
         } catch (CanalClientException | InterruptedException e) {
-            log.warn("ProcessRocketMQ:Ex: ", e);
+            log.error("ProcessRocketMQ processRocketMQ error. ex: ", e);
         }
     }
 
     /**
      * 提交
      * @param message
+     * @param connector
      */
-    protected abstract void postMsg(Serializable message);
+    protected abstract void postMsg(Object message, CanalConnector connector);
 
     /**
      * 停止

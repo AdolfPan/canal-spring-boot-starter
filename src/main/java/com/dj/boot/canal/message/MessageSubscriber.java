@@ -1,5 +1,6 @@
 package com.dj.boot.canal.message;
 
+import com.dj.boot.canal.lang.ConsumeStatus;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
@@ -23,6 +24,6 @@ public interface MessageSubscriber {
      * message subscriber
      * @param commonMessages
      */
-    void watch( List<CommonMessage> commonMessages);
+    ConsumeStatus watch(List<CommonMessage> commonMessages);
 
 }

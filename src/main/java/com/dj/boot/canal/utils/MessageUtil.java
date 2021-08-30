@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <br>
@@ -105,15 +106,25 @@ public final class MessageUtil {
         return msgs;
     }
 
+    public static List<CommonMessage> convert(List<FlatMessage> messages, String schema) {
+        if (CollectionUtils.isEmpty(messages)) {
+            return Lists.newArrayList();
+        }
+        return messages.stream()
+                .map(msg -> convert(msg, schema))
+                .filter(msg -> Objects.nonNull(msg))
+                .collect(Collectors.toList());
+    }
 
-    public static List<CommonMessage> convert(FlatMessage message, String schema) {
+    private static CommonMessage convert(FlatMessage message, String schema) {
         if (message == null) {
             return null;
         }
-        if (StringUtils.isNotBlank(schema) && !StringUtils.equals(message.getTable(), schema)) {
+        if (StringUtils.isNotBlank(schema)
+                && (EXCLUDE_SCHEMA.contains(message.getTable())
+                || !StringUtils.equals(message.getTable(), schema))) {
             return null;
         }
-        List<CommonMessage> rstList = Lists.newLinkedList();
         final CommonMessage msg = new CommonMessage();
         msg.setIsDdl(message.getIsDdl());
         msg.setDatabase(message.getDatabase());
@@ -139,8 +150,7 @@ public final class MessageUtil {
                 msg.setData(data);
             }
         }
-        rstList.add(msg);
-        return rstList;
+        return msg;
     }
 
 }
