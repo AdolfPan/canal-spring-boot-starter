@@ -40,7 +40,7 @@ public final class MessageUtil {
         for (CanalEntry.Entry entry : entries) {
             if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN
                     || entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND
-                    || EXCLUDE_SCHEMA.contains(entry.getHeader().getSchemaName())) {
+                    || EXCLUDE_SCHEMA.contains(entry.getHeader().getSchemaName().toLowerCase())) {
                 continue;
             }
             CanalEntry.RowChange rowChange;
@@ -119,7 +119,8 @@ public final class MessageUtil {
         if (message == null) {
             return null;
         }
-        if (EXCLUDE_SCHEMA.contains(message.getTable())) {
+        if (StringUtils.isNotBlank(message.getDatabase())
+                && EXCLUDE_SCHEMA.contains(message.getDatabase().toLowerCase())) {
             return null;
         }
         final CommonMessage msg = new CommonMessage();

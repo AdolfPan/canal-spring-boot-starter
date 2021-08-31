@@ -89,9 +89,9 @@ public abstract class AbstractBasicMessageTransponder extends AbstractMessageCon
         List<String> types = !CollectionUtils.isEmpty(eventTypes)? eventTypes.stream().map(eventType -> eventType.name().toLowerCase()).collect(Collectors.toList()) : null;
 
         List<CommonMessage> collect = finalCommonMessages.stream()
-                .filter(msg -> (CollectionUtils.isEmpty(schemas) || (!CollectionUtils.isEmpty(schemas) && schemas.contains(msg.getDatabase())))
-                        || (CollectionUtils.isEmpty(tables) || (!CollectionUtils.isEmpty(tables) && tables.contains(msg.getTable())))
-                        || (CollectionUtils.isEmpty(types) || (!CollectionUtils.isEmpty(types) && types.contains(msg.getType()))))
+                .filter(msg -> (CollectionUtils.isEmpty(schemas) || (!CollectionUtils.isEmpty(schemas) && schemas.contains(msg.getDatabase().toLowerCase())))
+                        && (CollectionUtils.isEmpty(tables) || (!CollectionUtils.isEmpty(tables) && tables.contains(msg.getTable().toLowerCase())))
+                        && (CollectionUtils.isEmpty(types) || (!CollectionUtils.isEmpty(types) && types.contains(msg.getType().toLowerCase()))))
                 .collect(Collectors.toList());
         return collect;
     }
