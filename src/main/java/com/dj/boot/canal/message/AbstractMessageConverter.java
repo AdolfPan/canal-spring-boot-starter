@@ -103,7 +103,9 @@ public abstract class AbstractMessageConverter implements MessageConverter {
                 if (batchId == -1 || size == 0) {
                     Thread.sleep(config.getHeartbeatInterval());
                 } else {
-                    postMsg(Lists.newArrayList(message), connector, batchId);
+                    postMsg(Lists.newArrayList(message), connector, batchId, (rst) -> {
+                        if (rst) { connector.ack(batchId); }
+                    });
                 }
             }
         } catch (CanalClientException | InterruptedException e) {
@@ -121,7 +123,9 @@ public abstract class AbstractMessageConverter implements MessageConverter {
                     if (CollectionUtils.isEmpty(flatListWithoutAck)) {
                         Thread.sleep(config.getHeartbeatInterval());
                     }
-                    postMsg(Lists.newArrayList(flatListWithoutAck), connector, -1);
+                    postMsg(Lists.newArrayList(flatListWithoutAck), connector, -1, (rst) -> {
+                        if (rst) {connector.ack(); }
+                    });
                     return;
                 }
 
@@ -129,7 +133,9 @@ public abstract class AbstractMessageConverter implements MessageConverter {
                 if (CollectionUtils.isEmpty(messages)) {
                     Thread.sleep(config.getHeartbeatInterval());
                 }
-                postMsg(Lists.newArrayList(messages), connector, -1);
+                postMsg(Lists.newArrayList(messages), connector, -1, (rst) -> {
+                    if (rst) {connector.ack(); }
+                });
             }
         } catch (CanalClientException | InterruptedException e) {
             log.error("ProcessRocketMQ processRocketMQ error. ex: ", e);
@@ -142,7 +148,7 @@ public abstract class AbstractMessageConverter implements MessageConverter {
      * @param connector
      * @param batchId
      */
-    protected abstract void postMsg(List<Object> message, CanalConnector connector, long batchId);
+    protected abstract void postMsg(List<Object> message, CanalConnector connector, long batchId, PostCall call);
 
     /**
      * 停止
@@ -150,4 +156,5 @@ public abstract class AbstractMessageConverter implements MessageConverter {
     void stop() {
         running = false;
     }
+
 }

@@ -2,7 +2,6 @@ package com.dj.boot.canal.message;
 
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
-import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 import com.dj.boot.canal.lang.SubscriberMetadata;
@@ -13,7 +12,6 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,7 +38,7 @@ public abstract class AbstractBasicMessageTransponder extends AbstractMessageCon
     }
 
     @Override
-    protected void postMsg(List<Object> messages, CanalConnector connector, long batchId) {
+    protected void postMsg(List<Object> messages, CanalConnector connector, long batchId, PostCall call) {
         try {
             if (CollectionUtils.isEmpty(messages)) {
                 log.warn("message is empty.");
@@ -74,16 +72,10 @@ public abstract class AbstractBasicMessageTransponder extends AbstractMessageCon
                     }
                 });
             }
+            call.call(true);
         } catch (Exception e) {
             log.error("AbstractBasicMessageTransponder postMsg process error. ex:", e);
             connector.rollback();
-        } finally {
-            if (connector instanceof RocketMQCanalConnector) {
-                ((RocketMQCanalConnector) connector).ack();
-            }
-            if (batchId != -1) {
-                connector.ack(batchId);
-            }
         }
     }
 
@@ -91,17 +83,29 @@ public abstract class AbstractBasicMessageTransponder extends AbstractMessageCon
         if (CollectionUtils.isEmpty(finalCommonMessages)) {
             return Lists.newArrayList();
         }
-        List<String> schemas = Objects.nonNull(metadata.getTables()) && metadata.getSchemas().length > 0? Arrays.asList(metadata.getSchemas()): null;
-        List<String> tables = Objects.nonNull(metadata.getTables()) && metadata.getTables().length > 0? Arrays.asList(metadata.getTables()): null;
-        List<CanalEntry.EventType> eventTypes = Objects.nonNull(metadata.getTables()) && metadata.getEventTypes().length > 0? Arrays.asList(metadata.getEventTypes()): null;
-        List<String> types = !CollectionUtils.isEmpty(eventTypes)? eventTypes.stream().map(type -> type.name().toLowerCase()).collect(Collectors.toList()) : null;
+        List<String> schemas = metadata.getSchemas();
+        List<String> tables = metadata.getTables();
+        List<String> types = !CollectionUtils.isEmpty(metadata.getEventTypes())? metadata.getEventTypes().stream().map(type -> type.name().toLowerCase()).collect(Collectors.toList()) : null;
 
         List<CommonMessage> collect = finalCommonMessages.stream()
                 .filter(msg -> Objects.nonNull(msg))
-                .filter(msg -> CollectionUtils.isEmpty(schemas) || (!CollectionUtils.isEmpty(schemas) && schemas.contains(msg.getDatabase().toLowerCase())))
-                .filter(msg -> CollectionUtils.isEmpty(tables) || (!CollectionUtils.isEmpty(tables) && tables.contains(msg.getTable().toLowerCase())))
-                .filter(msg -> CollectionUtils.isEmpty(types) || (!CollectionUtils.isEmpty(types) && types.contains(msg.getType().toLowerCase())))
                 .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(collect) && !CollectionUtils.isEmpty(schemas)) {
+            collect = collect.stream()
+                    .filter(msg -> !CollectionUtils.isEmpty(schemas) && schemas.contains(msg.getDatabase().toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+        if (!CollectionUtils.isEmpty(collect) && !CollectionUtils.isEmpty(tables)) {
+            collect = collect.stream()
+                    .filter(msg -> !CollectionUtils.isEmpty(tables) && tables.contains(msg.getTable().toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+        if (!CollectionUtils.isEmpty(collect) && !CollectionUtils.isEmpty(types)) {
+            collect = collect.stream()
+                    .filter(msg -> !CollectionUtils.isEmpty(types) && types.contains(msg.getType().toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+
         return collect;
     }
 

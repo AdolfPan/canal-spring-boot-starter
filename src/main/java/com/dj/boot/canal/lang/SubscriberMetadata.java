@@ -2,10 +2,14 @@ package com.dj.boot.canal.lang;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.dj.boot.canal.message.MessageSubscriber;
+import com.google.common.collect.Lists;
 import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * <br>
@@ -28,14 +32,14 @@ public class SubscriberMetadata implements Serializable {
     private static final long serialVersionUID = 959237975446391610L;
 
     private MessageSubscriber subscriber;
-    private String[] schemas = {};
-    private String[] tables = {};
-    private CanalEntry.EventType[] eventTypes = {};
+    private List<String> schemas = Lists.newArrayList();
+    private List<String> tables = Lists.newArrayList();
+    private List<CanalEntry.EventType> eventTypes = Lists.newArrayList();
 
     @Override
     public String toString() {
-        return "SubscriberMetadata::schemas:" + schemas.toString()
-                + ", tables:" + tables.toString()
-                + ", eventTypes:" + eventTypes.toString();
+        return "SubscriberMetadata::schemas:" + schemas.stream().collect(Collectors.joining(","))
+                + ", tables:" + tables.stream().collect(Collectors.joining(","))
+                + ", eventTypes:" + eventTypes.stream().filter(type -> Objects.nonNull(type)).map(type -> type.name()).collect(Collectors.joining(","));
     }
 }

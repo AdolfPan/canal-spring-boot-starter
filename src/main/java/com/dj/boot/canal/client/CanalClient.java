@@ -62,9 +62,9 @@ public class CanalClient extends AbstractClient {
                         .subscriber(subscriber)
                         .build();
                 if (Objects.nonNull(filter)) {
-                    metadata.setSchemas(filter.schemas())
-                            .setTables(filter.tables())
-                            .setEventTypes(filter.eventTypes());
+                    metadata.setSchemas(Arrays.asList(filter.schemas()))
+                            .setTables(Arrays.asList(filter.tables()))
+                            .setEventTypes(Arrays.asList(filter.eventTypes()));
                 }
                 log.info(metadata.toString());
                 subscriberMap.put(clazz.getName(), metadata);
