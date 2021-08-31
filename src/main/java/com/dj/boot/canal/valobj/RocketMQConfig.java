@@ -30,4 +30,5 @@ public class RocketMQConfig implements Serializable {
     private String accessKey;
     private String secretKey;
     private String accessChannel;
+    private boolean flat;
 }

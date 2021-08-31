@@ -1,5 +1,6 @@
 package com.dj.boot.canal.annotation;
 
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.*;
@@ -18,5 +19,10 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Component
-public @interface CanalMessageSubscriber {
+public @interface CanalMessageFilter {
+
+    String[] schemas() default {};
+    String[] tables() default {};
+    CanalEntry.EventType[] eventTypes() default {};
+
 }

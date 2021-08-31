@@ -25,10 +25,6 @@ public class Instance implements Serializable {
     private String mode = "tcp";
 
     /**
-     * 库
-     */
-    private String schema;
-    /**
      * zookeeper地址
      */
     private Set<String> zookeeperAddress = new LinkedHashSet<>();

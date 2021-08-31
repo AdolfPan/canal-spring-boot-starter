@@ -2,11 +2,7 @@ package com.dj.boot.canal.client;
 
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.CanalConnectors;
-import com.alibaba.otter.canal.client.impl.ClusterCanalConnector;
-import com.alibaba.otter.canal.client.impl.ClusterNodeAccessStrategy;
-import com.alibaba.otter.canal.client.impl.SimpleCanalConnector;
 import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
-import com.alibaba.otter.canal.common.zookeeper.ZkClientx;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
 import com.dj.boot.canal.configure.CanalConfiguration;
 import com.dj.boot.canal.message.Converter;
@@ -24,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * <br>
@@ -147,8 +142,8 @@ public abstract class AbstractClient implements Client {
                 mqConfig.getGroupId(),
                 mqConfig.getAccessKey(),
                 mqConfig.getSecretKey(),
-                instance.getBatchSize(),
-                true,
+                -1,
+                mqConfig.isFlat(),
                 mqConfig.isTrace(),
                 null,
                 mqConfig.getAccessChannel(),

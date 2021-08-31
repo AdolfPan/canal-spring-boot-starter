@@ -5,14 +5,16 @@ import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
+import com.dj.boot.canal.lang.SubscriberMetadata;
 import com.dj.boot.canal.valobj.Instance;
+import com.dj.boot.canal.valobj.RocketMQConfig;
 import com.dj.boot.canal.valobj.ServerMode;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -33,15 +35,15 @@ public abstract class AbstractMessageConverter implements MessageConverter {
     private final CanalConnector connector;
     protected final Instance config;
     protected final String destination;
-    protected final List<MessageSubscriber> subscribers = new ArrayList<>();
+    protected final Map<String, SubscriberMetadata> subscribers = Maps.newLinkedHashMap();
     private volatile boolean running = true;
 
-    public AbstractMessageConverter(CanalConnector connector, Map.Entry<String, Instance> config, List<MessageSubscriber> subscribers) {
+    public AbstractMessageConverter(CanalConnector connector, Map.Entry<String, Instance> config, Map<String, SubscriberMetadata> subscriberMap) {
         this.connector = connector;
         this.config = config.getValue();
         this.destination = config.getKey();
-        if (subscribers != null) {
-            this.subscribers.addAll(subscribers);
+        if (!CollectionUtils.isEmpty(subscriberMap)) {
+            this.subscribers.putAll(subscriberMap);
         }
     }
 
@@ -101,7 +103,7 @@ public abstract class AbstractMessageConverter implements MessageConverter {
                 if (batchId == -1 || size == 0) {
                     Thread.sleep(config.getHeartbeatInterval());
                 } else {
-                    postMsg(message, connector);
+                    postMsg(Lists.newArrayList(message), connector, batchId);
                 }
             }
         } catch (CanalClientException | InterruptedException e) {
@@ -113,11 +115,21 @@ public abstract class AbstractMessageConverter implements MessageConverter {
     private void processRocketMQ(Instance config, RocketMQCanalConnector connector) {
         try {
             while (running && !Thread.currentThread().isInterrupted()) {
-                List<FlatMessage> flatListWithoutAck = connector.getFlatListWithoutAck(1000L, TimeUnit.MILLISECONDS);
-                if (CollectionUtils.isEmpty(flatListWithoutAck)) {
+                RocketMQConfig mqConfig = config.getMqConfig();
+                if (mqConfig.isFlat()) {
+                    List<FlatMessage> flatListWithoutAck = connector.getFlatListWithoutAck(1000L, TimeUnit.MILLISECONDS);
+                    if (CollectionUtils.isEmpty(flatListWithoutAck)) {
+                        Thread.sleep(config.getHeartbeatInterval());
+                    }
+                    postMsg(Lists.newArrayList(flatListWithoutAck), connector, -1);
+                    return;
+                }
+
+                List<Message> messages = connector.getListWithoutAck(1000L, TimeUnit.MILLISECONDS);
+                if (CollectionUtils.isEmpty(messages)) {
                     Thread.sleep(config.getHeartbeatInterval());
                 }
-                postMsg(flatListWithoutAck, connector);
+                postMsg(Lists.newArrayList(messages), connector, -1);
             }
         } catch (CanalClientException | InterruptedException e) {
             log.error("ProcessRocketMQ processRocketMQ error. ex: ", e);
@@ -128,8 +140,9 @@ public abstract class AbstractMessageConverter implements MessageConverter {
      * 提交
      * @param message
      * @param connector
+     * @param batchId
      */
-    protected abstract void postMsg(Object message, CanalConnector connector);
+    protected abstract void postMsg(List<Object> message, CanalConnector connector, long batchId);
 
     /**
      * 停止

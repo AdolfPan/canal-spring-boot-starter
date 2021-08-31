@@ -1,9 +1,9 @@
 package com.dj.boot.canal.message;
 
 import com.alibaba.otter.canal.client.CanalConnector;
+import com.dj.boot.canal.lang.SubscriberMetadata;
 import com.dj.boot.canal.valobj.Instance;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,7 +18,7 @@ import java.util.Map;
  */
 public class DefaultConverter extends AbstractBasicMessageTransponder {
 
-    public DefaultConverter(CanalConnector connector, Map.Entry<String, Instance> config, List<MessageSubscriber> subscribers) {
+    public DefaultConverter(CanalConnector connector, Map.Entry<String, Instance> config, Map<String, SubscriberMetadata> subscribers) {
         super(connector, config, subscribers);
     }
 

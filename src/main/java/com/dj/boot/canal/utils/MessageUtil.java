@@ -31,7 +31,7 @@ public final class MessageUtil {
      */
     public static final List<String> EXCLUDE_SCHEMA = Lists.newArrayList("mysql", "sys", "performance_schema", "information_schema");
 
-    public static List<CommonMessage> convert(Message message, String schema) {
+    public static List<CommonMessage> convert(Message message) {
         if (message == null) {
             return null;
         }
@@ -40,8 +40,7 @@ public final class MessageUtil {
         for (CanalEntry.Entry entry : entries) {
             if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN
                     || entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND
-                    || EXCLUDE_SCHEMA.contains(entry.getHeader().getSchemaName())
-                    || (StringUtils.isNotBlank(schema) && !StringUtils.equals(entry.getHeader().getSchemaName(), schema))) {
+                    || EXCLUDE_SCHEMA.contains(entry.getHeader().getSchemaName())) {
                 continue;
             }
             CanalEntry.RowChange rowChange;
@@ -57,7 +56,7 @@ public final class MessageUtil {
             msg.setIsDdl(rowChange.getIsDdl());
             msg.setDatabase(entry.getHeader().getSchemaName());
             msg.setTable(entry.getHeader().getTableName());
-            msg.setType(eventType.toString());
+            msg.setType(eventType.toString().toLowerCase());
             msg.setExecuteTime(entry.getHeader().getExecuteTime());
             msg.setIsDdl(rowChange.getIsDdl());
             msg.setTimeStamp(System.currentTimeMillis());
@@ -106,30 +105,28 @@ public final class MessageUtil {
         return msgs;
     }
 
-    public static List<CommonMessage> convert(List<FlatMessage> messages, String schema) {
+    public static List<CommonMessage> convert(List<FlatMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return Lists.newArrayList();
         }
         return messages.stream()
-                .map(msg -> convert(msg, schema))
+                .map(msg -> convert(msg))
                 .filter(msg -> Objects.nonNull(msg))
                 .collect(Collectors.toList());
     }
 
-    private static CommonMessage convert(FlatMessage message, String schema) {
+    public static CommonMessage convert(FlatMessage message) {
         if (message == null) {
             return null;
         }
-        if (StringUtils.isNotBlank(schema)
-                && (EXCLUDE_SCHEMA.contains(message.getTable())
-                || !StringUtils.equals(message.getTable(), schema))) {
+        if (EXCLUDE_SCHEMA.contains(message.getTable())) {
             return null;
         }
         final CommonMessage msg = new CommonMessage();
         msg.setIsDdl(message.getIsDdl());
         msg.setDatabase(message.getDatabase());
         msg.setTable(message.getTable());
-        msg.setType(message.getType());
+        msg.setType(message.getType().toLowerCase());
         msg.setTimeStamp(System.currentTimeMillis());
         msg.setSql(message.getSql());
         msg.setPkNames(message.getPkNames());
