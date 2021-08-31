@@ -10,7 +10,7 @@
 
     <groupId>com.dj.boot</groupId>
     <artifactId>canal-spring-boot-starter</artifactId>
-    <version>0.0.9-RELEASE</version>
+    <version>0.0.10-RELEASE</version>
     <name>canal-spring-boot-starter</name>
     <description>canal starter</description>
     <packaging>jar</packaging>

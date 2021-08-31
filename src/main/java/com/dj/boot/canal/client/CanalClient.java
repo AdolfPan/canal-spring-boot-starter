@@ -66,6 +66,7 @@ public class CanalClient extends AbstractClient {
                             .setTables(filter.tables())
                             .setEventTypes(filter.eventTypes());
                 }
+                log.info(metadata.toString());
                 subscriberMap.put(clazz.getName(), metadata);
             }
         }

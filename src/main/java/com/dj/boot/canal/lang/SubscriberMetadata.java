@@ -28,8 +28,14 @@ public class SubscriberMetadata implements Serializable {
     private static final long serialVersionUID = 959237975446391610L;
 
     private MessageSubscriber subscriber;
-    private String[] schemas;
-    private String[] tables;
-    private CanalEntry.EventType[] eventTypes;
+    private String[] schemas = {};
+    private String[] tables = {};
+    private CanalEntry.EventType[] eventTypes = {};
 
+    @Override
+    public String toString() {
+        return "SubscriberMetadata::schemas:" + schemas.toString()
+                + ", tables:" + tables.toString()
+                + ", eventTypes:" + eventTypes.toString();
+    }
 }
