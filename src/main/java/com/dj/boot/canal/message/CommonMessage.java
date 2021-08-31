@@ -52,6 +52,7 @@ public class CommonMessage implements Serializable {
      * 数据列表
      */
     private List<Map<String, Object>> data;
+    private List<Map<String, Object>> old;
 
     public void clear() {
         database = null;

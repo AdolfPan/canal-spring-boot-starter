@@ -63,8 +63,10 @@ public final class MessageUtil {
             msg.setSql(rowChange.getSql());
             msgs.add(msg);
             List<Map<String, Object>> data = new ArrayList<>();
+            List<Map<String, Object>> old = new ArrayList<>();
 
             if (!rowChange.getIsDdl()) {
+                Set<String> updateSet = new HashSet<>();
                 msg.setPkNames(new ArrayList<>());
                 int i = 0;
                 for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
@@ -95,10 +97,34 @@ public final class MessageUtil {
                     if (!row.isEmpty()) {
                         data.add(row);
                     }
+                    if (eventType == CanalEntry.EventType.UPDATE) {
+                        Map<String, Object> rowOld = new LinkedHashMap<>();
+                        for (CanalEntry.Column column : rowData.getBeforeColumnsList()) {
+                            if (updateSet.contains(column.getName())) {
+                                if (column.getIsNull()) {
+                                    rowOld.put(column.getName(), null);
+                                } else {
+                                    rowOld.put(column.getName(),
+                                            JdbcTypeUtil.typeConvert(msg.getTable(),
+                                                    column.getName(),
+                                                    column.getValue(),
+                                                    column.getSqlType(),
+                                                    column.getMysqlType()));
+                                }
+                            }
+                        }
+                        // update操作将记录修改前的值
+                        if (!rowOld.isEmpty()) {
+                            old.add(rowOld);
+                        }
+                    }
                     i++;
                 }
                 if (!data.isEmpty()) {
                     msg.setData(data);
+                }
+                if (!old.isEmpty()) {
+                    msg.setOld(old);
                 }
             }
         }
@@ -131,21 +157,52 @@ public final class MessageUtil {
         msg.setTimeStamp(System.currentTimeMillis());
         msg.setSql(message.getSql());
         msg.setPkNames(message.getPkNames());
-        List<Map<String, Object>> data = Lists.newArrayList();
         if (!message.getIsDdl()) {
-            for (Map<String, String> datum : message.getData()) {
-                if (!CollectionUtils.isEmpty(datum)) {
-                    Iterator<String> iterator = datum.keySet().iterator();
-                    while (iterator.hasNext()) {
-                        String next = iterator.next();
+            List<Map<String, Object>> data = Lists.newArrayList();
+            if (!CollectionUtils.isEmpty(message.getData())) {
+                for (Map<String, String> datum : message.getData()) {
+                    if (!CollectionUtils.isEmpty(datum)) {
                         Map put = Maps.newLinkedHashMap();
-                        put.put(next, datum.get(next));
+                        Iterator<String> iterator = datum.keySet().iterator();
+                        while (iterator.hasNext()) {
+                            String next = iterator.next();
+                            String baseV = datum.get(next);
+                            Object val = StringUtils.isBlank(baseV)?
+                                    null:
+                                    JdbcTypeUtil.typeConvert(message.getTable(),
+                                            next,
+                                            baseV,
+                                            message.getSqlType().get(next),
+                                            message.getMysqlType().get(next));
+                            put.put(next, val);
+                        }
                         data.add(put);
                     }
                 }
-            }
-            if (!CollectionUtils.isEmpty(data)) {
                 msg.setData(data);
+            }
+            List<Map<String, Object>> old = Lists.newArrayList();
+            if (!CollectionUtils.isEmpty(message.getOld())) {
+                for (Map<String, String> datum : message.getOld()) {
+                    if (!CollectionUtils.isEmpty(datum)) {
+                        Map put = Maps.newLinkedHashMap();
+                        Iterator<String> iterator = datum.keySet().iterator();
+                        while (iterator.hasNext()) {
+                            String next = iterator.next();
+                            String baseV = datum.get(next);
+                            Object val = StringUtils.isBlank(baseV)?
+                                    null:
+                                    JdbcTypeUtil.typeConvert(message.getTable(),
+                                            next,
+                                            baseV,
+                                            message.getSqlType().get(next),
+                                            message.getMysqlType().get(next));
+                            put.put(next, val);
+                        }
+                        old.add(put);
+                    }
+                }
+                msg.setData(old);
             }
         }
         return msg;
