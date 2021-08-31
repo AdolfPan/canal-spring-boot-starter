@@ -54,8 +54,8 @@ public final class MessageUtil {
 
             final CommonMessage msg = new CommonMessage();
             msg.setIsDdl(rowChange.getIsDdl());
-            msg.setDatabase(entry.getHeader().getSchemaName());
-            msg.setTable(entry.getHeader().getTableName());
+            msg.setDatabase(entry.getHeader().getSchemaName().toLowerCase());
+            msg.setTable(entry.getHeader().getTableName().toLowerCase());
             msg.setType(eventType.toString().toLowerCase());
             msg.setExecuteTime(entry.getHeader().getExecuteTime());
             msg.setIsDdl(rowChange.getIsDdl());
@@ -125,8 +125,8 @@ public final class MessageUtil {
         }
         final CommonMessage msg = new CommonMessage();
         msg.setIsDdl(message.getIsDdl());
-        msg.setDatabase(message.getDatabase());
-        msg.setTable(message.getTable());
+        msg.setDatabase(message.getDatabase().toLowerCase());
+        msg.setTable(message.getTable().toLowerCase());
         msg.setType(message.getType().toLowerCase());
         msg.setTimeStamp(System.currentTimeMillis());
         msg.setSql(message.getSql());
