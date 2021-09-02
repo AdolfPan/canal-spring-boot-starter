@@ -11,7 +11,7 @@ import java.util.Set;
  * <p>canal配置信息</p>
  *
  * <br>
- * @author panrusen
+ * @author mason
  * @version 1.0
  * @date 2021/8/6 下午4:08
  */

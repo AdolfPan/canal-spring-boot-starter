@@ -11,7 +11,7 @@ import java.lang.annotation.*;
  * <p>canal enable</p>
  *
  * <br>
- * @author panrusen
+ * @author mason
  * @version 1.0
  * @date 2021/8/9 下午6:59
  */

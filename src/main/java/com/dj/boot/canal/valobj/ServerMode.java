@@ -6,7 +6,7 @@ package com.dj.boot.canal.valobj;
  *
  * <br>
  *
- * @author panrusen
+ * @author mason
  * @version 1.0
  * @date 2021/8/20 上午10:28
  */
