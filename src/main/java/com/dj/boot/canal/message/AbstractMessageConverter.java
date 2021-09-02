@@ -103,7 +103,7 @@ public abstract class AbstractMessageConverter implements MessageConverter {
                 if (batchId == -1 || size == 0) {
                     Thread.sleep(config.getHeartbeatInterval());
                 } else {
-                    postMsg(Lists.newArrayList(message), connector, batchId, (rst) -> {
+                    postMsg(Lists.newArrayList(message), connector, batchId, this.destination, (rst) -> {
                         if (rst) { connector.ack(batchId); }
                     });
                 }
@@ -123,7 +123,7 @@ public abstract class AbstractMessageConverter implements MessageConverter {
                     if (CollectionUtils.isEmpty(flatListWithoutAck)) {
                         Thread.sleep(config.getHeartbeatInterval());
                     }
-                    postMsg(Lists.newArrayList(flatListWithoutAck), connector, -1, (rst) -> {
+                    postMsg(Lists.newArrayList(flatListWithoutAck), connector, -1, this.destination, (rst) -> {
                         if (rst) {connector.ack(); }
                     });
                     return;
@@ -133,7 +133,7 @@ public abstract class AbstractMessageConverter implements MessageConverter {
                 if (CollectionUtils.isEmpty(messages)) {
                     Thread.sleep(config.getHeartbeatInterval());
                 }
-                postMsg(Lists.newArrayList(messages), connector, -1, (rst) -> {
+                postMsg(Lists.newArrayList(messages), connector, -1, this.destination, (rst) -> {
                     if (rst) {connector.ack(); }
                 });
             }
@@ -148,7 +148,7 @@ public abstract class AbstractMessageConverter implements MessageConverter {
      * @param connector
      * @param batchId
      */
-    protected abstract void postMsg(List<Object> message, CanalConnector connector, long batchId, PostCall call);
+    protected abstract void postMsg(List<Object> message, CanalConnector connector, long batchId, String instance, PostCall call);
 
     /**
      * 停止

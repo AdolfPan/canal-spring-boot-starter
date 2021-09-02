@@ -10,11 +10,13 @@ import com.dj.boot.canal.lang.ConsumeStatus;
 import com.dj.boot.canal.valobj.Instance;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -38,12 +40,38 @@ public abstract class AbstractBasicMessageTransponder extends AbstractMessageCon
     }
 
     @Override
-    protected void postMsg(List<Object> messages, CanalConnector connector, long batchId, PostCall call) {
+    protected void postMsg(List<Object> messages, CanalConnector connector, long batchId, String instance, PostCall call) {
         try {
             if (CollectionUtils.isEmpty(messages)) {
-                log.warn("message is empty.");
+                log.warn("Message list is empty.");
                 return;
             }
+            if (CollectionUtils.isEmpty(subscribers)) {
+                log.warn("Subscriber list is empty.");
+                call.call(true);
+                return;
+            }
+            if (StringUtils.isBlank(instance)) {
+                log.warn("Subscriber instance cannot be empty.");
+                call.call(true);
+                return;
+            }
+
+            SubscriberMetadata subscriber = null;
+            Optional<SubscriberMetadata> first = subscribers.values()
+                    .stream()
+                    .filter(sub -> StringUtils.equalsAnyIgnoreCase(instance, sub.getInstance()))
+                    .findFirst();
+            if (Objects.nonNull(first)
+                    && first.isPresent()) {
+                subscriber = first.get();
+            }
+            if (Objects.isNull(subscriber)) {
+                log.warn("Instance {} no subscribe metadata information.", instance);
+                call.call(true);
+                return;
+            }
+
             List<CommonMessage> finalCommonMessages = Lists.newArrayList();
             messages.stream().forEach(msg -> {
                 if (msg instanceof Message) {
@@ -53,24 +81,21 @@ public abstract class AbstractBasicMessageTransponder extends AbstractMessageCon
                 }
             });
 
-            if (!CollectionUtils.isEmpty(subscribers)
-                    && !CollectionUtils.isEmpty(finalCommonMessages)) {
-                subscribers.values().stream().forEach(listener -> {
-                    List<CommonMessage> commonMessages = messageFilter(finalCommonMessages, listener);
-                    if (!CollectionUtils.isEmpty(commonMessages)) {
-                        ConsumeStatus status = listener.getSubscriber().watch(commonMessages);
-                        if (Objects.equals(ConsumeStatus.success, status)) {
-                            // mq提交确认
-                            if (connector instanceof RocketMQCanalConnector) {
-                                ((RocketMQCanalConnector) connector).ack();
-                            }
-                            // TCP提交确认
-                            if (batchId != -1) {
-                                connector.ack(batchId);
-                            }
+            if (!CollectionUtils.isEmpty(finalCommonMessages)) {
+                List<CommonMessage> commonMessages = messageFilter(finalCommonMessages, subscriber);
+                if (!CollectionUtils.isEmpty(commonMessages)) {
+                    ConsumeStatus status = subscriber.getSubscriber().watch(commonMessages);
+                    if (Objects.equals(ConsumeStatus.success, status)) {
+                        // mq提交确认
+                        if (connector instanceof RocketMQCanalConnector) {
+                            ((RocketMQCanalConnector) connector).ack();
+                        }
+                        // TCP提交确认
+                        if (batchId != -1) {
+                            connector.ack(batchId);
                         }
                     }
-                });
+                }
             }
             call.call(true);
         } catch (Exception e) {

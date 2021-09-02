@@ -62,7 +62,8 @@ public class CanalClient extends AbstractClient {
                         .subscriber(subscriber)
                         .build();
                 if (Objects.nonNull(filter)) {
-                    metadata.setSchemas(Arrays.asList(filter.schemas()))
+                    metadata.setInstance(filter.instance())
+                            .setSchemas(Arrays.asList(filter.schemas()))
                             .setTables(Arrays.asList(filter.tables()))
                             .setEventTypes(Arrays.asList(filter.eventTypes()));
                 }

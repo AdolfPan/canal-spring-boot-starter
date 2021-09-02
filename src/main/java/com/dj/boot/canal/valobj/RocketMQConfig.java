@@ -24,7 +24,6 @@ import java.io.Serializable;
 public class RocketMQConfig implements Serializable {
     private String namespace = "";
     private String nameServers;
-    private String topic;
     private String groupId;
     private boolean trace;
     private String accessKey;

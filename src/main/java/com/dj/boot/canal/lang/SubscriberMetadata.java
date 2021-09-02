@@ -32,6 +32,7 @@ public class SubscriberMetadata implements Serializable {
     private static final long serialVersionUID = 959237975446391610L;
 
     private MessageSubscriber subscriber;
+    private String instance;
     private List<String> schemas = Lists.newArrayList();
     private List<String> tables = Lists.newArrayList();
     private List<CanalEntry.EventType> eventTypes = Lists.newArrayList();

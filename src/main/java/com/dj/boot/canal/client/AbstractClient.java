@@ -138,7 +138,7 @@ public abstract class AbstractClient implements Client {
         RocketMQConfig mqConfig = instance.getMqConfig();
         RocketMQCanalConnector connector = new RocketMQCanalConnector(
                 mqConfig.getNameServers(),
-                mqConfig.getTopic(),
+                instanceEntry.getKey(),
                 mqConfig.getGroupId(),
                 mqConfig.getAccessKey(),
                 mqConfig.getSecretKey(),

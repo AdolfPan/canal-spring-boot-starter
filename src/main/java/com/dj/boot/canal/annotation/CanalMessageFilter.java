@@ -21,8 +21,29 @@ import java.lang.annotation.*;
 @Component
 public @interface CanalMessageFilter {
 
+    /**
+     * 接收实例
+     *  [必填字段]
+     * @return
+     */
+    String instance();
+
+    /**
+     * 库
+     * @return
+     */
     String[] schemas() default {};
+
+    /**
+     * 表
+     * @return
+     */
     String[] tables() default {};
+
+    /**
+     * sql options event
+     * @return
+     */
     CanalEntry.EventType[] eventTypes() default {};
 
 }
