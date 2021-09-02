@@ -1,6 +1,7 @@
 package com.dj.boot.canal.message;
 
 import com.alibaba.otter.canal.client.CanalConnector;
+import com.dj.boot.canal.configure.CanalConfiguration;
 import com.dj.boot.canal.lang.SubscriberMetadata;
 import com.dj.boot.canal.valobj.Instance;
 
@@ -24,8 +25,9 @@ public interface Converter {
      * @param connector
      * @param config
      * @param subscribers
+     * @param configuration
      * @return
      */
-    MessageConverter initConverter(CanalConnector connector, Map.Entry<String, Instance> config, Map<String, SubscriberMetadata> subscribers);
+    MessageConverter initConverter(CanalConnector connector, Map.Entry<String, Instance> config, Map<String, SubscriberMetadata> subscribers, CanalConfiguration configuration);
 
 }

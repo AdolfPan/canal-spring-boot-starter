@@ -4,6 +4,7 @@ import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
+import com.dj.boot.canal.configure.CanalConfiguration;
 import com.dj.boot.canal.lang.SubscriberMetadata;
 import com.dj.boot.canal.utils.MessageUtil;
 import com.dj.boot.canal.lang.ConsumeStatus;
@@ -35,8 +36,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class AbstractBasicMessageTransponder extends AbstractMessageConverter {
 
-    public AbstractBasicMessageTransponder(CanalConnector connector, Map.Entry<String, Instance> config, Map<String, SubscriberMetadata> subscriberMap) {
-        super(connector, config, subscriberMap);
+    public AbstractBasicMessageTransponder(CanalConnector connector, Map.Entry<String, Instance> config, Map<String, SubscriberMetadata> subscriberMap, CanalConfiguration configuration) {
+        super(connector, config, subscriberMap, configuration);
     }
 
     @Override

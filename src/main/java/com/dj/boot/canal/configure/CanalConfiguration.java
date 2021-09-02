@@ -1,6 +1,9 @@
 package com.dj.boot.canal.configure;
 
 import com.dj.boot.canal.valobj.Instance;
+import com.dj.boot.canal.valobj.KafkaConfig;
+import com.dj.boot.canal.valobj.RocketMQConfig;
+import com.dj.boot.canal.valobj.ServerMode;
 import com.google.common.collect.Maps;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -22,6 +25,21 @@ import java.util.Map;
 @Configuration
 @ConfigurationProperties(prefix = "dj.canal")
 public class CanalConfiguration {
+
+    /**
+     * canal server mode (tcp kafka rocketMQ)
+     */
+    private String mode = ServerMode.tcp.name();
+
+    /**
+     * rocket mq cfg
+     */
+    private RocketMQConfig mqConfig;
+
+    /**
+     * kafka cfg
+     */
+    private KafkaConfig kafkaConfig;
 
     private Map<String, Instance> instances = Maps.newLinkedHashMap();
 

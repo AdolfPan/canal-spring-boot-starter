@@ -19,12 +19,6 @@ import java.util.Set;
 public class Instance implements Serializable {
 
     /**
-     * 接收模式
-     * 支持tcp kafka rocketMQ
-     */
-    private String mode = "tcp";
-
-    /**
      * zookeeper地址
      */
     private Set<String> zookeeperAddress = new LinkedHashSet<>();
@@ -71,14 +65,8 @@ public class Instance implements Serializable {
     private long heartbeatInterval = 1000;
 
     /**
-     * rocket mq cfg
+     * mq消费组ID
      */
-    private RocketMQConfig mqConfig;
-
-    /**
-     * kafka cfg
-     */
-    private KafkaConfig kafkaConfig;
-
+    private String groupId;
 
 }

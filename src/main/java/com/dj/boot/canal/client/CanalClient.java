@@ -46,8 +46,8 @@ public class CanalClient extends AbstractClient {
     }
 
     @Override
-    protected void buildConnector(CanalConnector connector, Map.Entry<String, Instance> config) {
-        executor.submit(converter.initConverter(connector, config, subscriberMap));
+    protected void buildConnector(CanalConnector connector, Map.Entry<String, Instance> config, CanalConfiguration configuration) {
+        executor.submit(converter.initConverter(connector, config, subscriberMap, configuration));
     }
 
     private void initSubscriber() {

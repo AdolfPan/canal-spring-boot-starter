@@ -5,8 +5,10 @@ import com.alibaba.otter.canal.client.rocketmq.RocketMQCanalConnector;
 import com.alibaba.otter.canal.protocol.FlatMessage;
 import com.alibaba.otter.canal.protocol.Message;
 import com.alibaba.otter.canal.protocol.exception.CanalClientException;
+import com.dj.boot.canal.configure.CanalConfiguration;
 import com.dj.boot.canal.lang.SubscriberMetadata;
 import com.dj.boot.canal.valobj.Instance;
+import com.dj.boot.canal.valobj.KafkaConfig;
 import com.dj.boot.canal.valobj.RocketMQConfig;
 import com.dj.boot.canal.valobj.ServerMode;
 import com.google.common.collect.Lists;
@@ -35,13 +37,19 @@ public abstract class AbstractMessageConverter implements MessageConverter {
     private final CanalConnector connector;
     protected final Instance config;
     protected final String destination;
+    protected final String mode;
+    protected final RocketMQConfig mqConfig;
+    protected final KafkaConfig kafkaConfig;
     protected final Map<String, SubscriberMetadata> subscribers = Maps.newLinkedHashMap();
     private volatile boolean running = true;
 
-    public AbstractMessageConverter(CanalConnector connector, Map.Entry<String, Instance> config, Map<String, SubscriberMetadata> subscriberMap) {
+    public AbstractMessageConverter(CanalConnector connector, Map.Entry<String, Instance> config, Map<String, SubscriberMetadata> subscriberMap, CanalConfiguration configuration) {
         this.connector = connector;
         this.config = config.getValue();
         this.destination = config.getKey();
+        this.mode = configuration.getMode();
+        this.mqConfig = configuration.getMqConfig();
+        this.kafkaConfig = configuration.getKafkaConfig();
         if (!CollectionUtils.isEmpty(subscriberMap)) {
             this.subscribers.putAll(subscriberMap);
         }
@@ -55,7 +63,7 @@ public abstract class AbstractMessageConverter implements MessageConverter {
             while (running && !Thread.currentThread().isInterrupted()) {
                 process(config, connector);
             }
-            if (StringUtils.equals(ServerMode.rocketMQ.name(), config.getMode())) {
+            if (StringUtils.equals(ServerMode.rocketMQ.name(), this.mode)) {
                 connector.unsubscribe();
             }
             this.stop();
@@ -81,7 +89,7 @@ public abstract class AbstractMessageConverter implements MessageConverter {
     }
 
     private void process(Instance config, CanalConnector connector) throws InterruptedException {
-        String mode = config.getMode();
+        String mode = this.mode;
         switch (mode) {
             case "rocketMQ":
                 processRocketMQ(config, (RocketMQCanalConnector) connector);
@@ -117,7 +125,7 @@ public abstract class AbstractMessageConverter implements MessageConverter {
     private void processRocketMQ(Instance config, RocketMQCanalConnector connector) {
         try {
             while (running && !Thread.currentThread().isInterrupted()) {
-                RocketMQConfig mqConfig = config.getMqConfig();
+                RocketMQConfig mqConfig = this.mqConfig;
                 if (mqConfig.isFlat()) {
                     List<FlatMessage> flatListWithoutAck = connector.getFlatListWithoutAck(1000L, TimeUnit.MILLISECONDS);
                     if (CollectionUtils.isEmpty(flatListWithoutAck)) {

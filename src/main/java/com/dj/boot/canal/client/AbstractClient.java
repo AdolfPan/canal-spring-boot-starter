@@ -41,7 +41,7 @@ public abstract class AbstractClient implements Client {
     public AbstractClient(CanalConfiguration canalConfiguration) {
         Assert.isTrue(Objects.nonNull(canalConfiguration), "canal配置信息不能为空");
         this.canalConfiguration = canalConfiguration;
-        this.converter = (connector, config, subscribers) -> new DefaultConverter(connector, config, subscribers);
+        this.converter = (connector, config, subscribers, configuration) -> new DefaultConverter(connector, config, subscribers, configuration);
     }
 
     @Override
@@ -58,7 +58,7 @@ public abstract class AbstractClient implements Client {
                 .stream()
                 .forEach(instanceEntry -> {
                     log.info("canal client cfg::{}", instanceEntry);
-                    buildConnector(buildEntry(instanceEntry), instanceEntry);
+                    buildConnector(buildEntry(instanceEntry), instanceEntry, canalConfiguration);
                 });
     }
 
@@ -77,7 +77,7 @@ public abstract class AbstractClient implements Client {
      * @param connector
      * @param config
      */
-    protected abstract void buildConnector(CanalConnector connector, Map.Entry<String, Instance> config);
+    protected abstract void buildConnector(CanalConnector connector, Map.Entry<String, Instance> config, CanalConfiguration canalConfiguration);
 
     /**
      * 装配连接器
@@ -90,8 +90,7 @@ public abstract class AbstractClient implements Client {
 
     private CanalConnector process(Map.Entry<String, Instance> instanceEntry) {
         CanalConnector canalConnector = null;
-        Instance instance = instanceEntry.getValue();
-        final String mode = instance.getMode();
+        final String mode = canalConfiguration.getMode();
         switch (mode) {
             case "tcp":
                 canalConnector = buildOfTcp(instanceEntry);
@@ -135,11 +134,11 @@ public abstract class AbstractClient implements Client {
 
     private RocketMQCanalConnector buildOfRocketMQ(Map.Entry<String, Instance> instanceEntry) {
         Instance instance = instanceEntry.getValue();
-        RocketMQConfig mqConfig = instance.getMqConfig();
+        RocketMQConfig mqConfig = canalConfiguration.getMqConfig();
         RocketMQCanalConnector connector = new RocketMQCanalConnector(
                 mqConfig.getNameServers(),
                 instanceEntry.getKey(),
-                mqConfig.getGroupId(),
+                instance.getGroupId(),
                 mqConfig.getAccessKey(),
                 mqConfig.getSecretKey(),
                 -1,
