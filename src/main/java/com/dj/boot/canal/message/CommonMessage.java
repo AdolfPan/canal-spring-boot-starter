@@ -53,6 +53,8 @@ public class CommonMessage implements Serializable {
      */
     private List<Map<String, Object>> data;
     private List<Map<String, Object>> old;
+    private List<Map<String, Object>> pkData;
+    private List<Map<String, Object>> pkOld;
 
     public void clear() {
         database = null;

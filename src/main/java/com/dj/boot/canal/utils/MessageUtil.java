@@ -155,14 +155,15 @@ public final class MessageUtil {
         msg.setTable(message.getTable().toLowerCase());
         msg.setType(message.getType().toLowerCase());
         msg.setTimeStamp(System.currentTimeMillis());
+        msg.setExecuteTime(message.getEs());
         msg.setSql(message.getSql());
         msg.setPkNames(message.getPkNames());
         if (!message.getIsDdl()) {
             List<Map<String, Object>> data = Lists.newArrayList();
             if (!CollectionUtils.isEmpty(message.getData())) {
+                Map put = Maps.newLinkedHashMap();
                 for (Map<String, String> datum : message.getData()) {
                     if (!CollectionUtils.isEmpty(datum)) {
-                        Map put = Maps.newLinkedHashMap();
                         Iterator<String> iterator = datum.keySet().iterator();
                         while (iterator.hasNext()) {
                             String next = iterator.next();
@@ -176,16 +177,20 @@ public final class MessageUtil {
                                             message.getMysqlType().get(next));
                             put.put(next, val);
                         }
-                        data.add(put);
                     }
+                }
+
+                if (!CollectionUtils.isEmpty(put)) {
+                    data.add(put);
                 }
                 msg.setData(data);
             }
+
             List<Map<String, Object>> old = Lists.newArrayList();
             if (!CollectionUtils.isEmpty(message.getOld())) {
+                Map put = Maps.newLinkedHashMap();
                 for (Map<String, String> datum : message.getOld()) {
                     if (!CollectionUtils.isEmpty(datum)) {
-                        Map put = Maps.newLinkedHashMap();
                         Iterator<String> iterator = datum.keySet().iterator();
                         while (iterator.hasNext()) {
                             String next = iterator.next();
@@ -199,10 +204,12 @@ public final class MessageUtil {
                                             message.getMysqlType().get(next));
                             put.put(next, val);
                         }
-                        old.add(put);
                     }
                 }
-                msg.setData(old);
+                if (!CollectionUtils.isEmpty(put)) {
+                    old.add(put);
+                }
+                msg.setOld(old);
             }
         }
         return msg;

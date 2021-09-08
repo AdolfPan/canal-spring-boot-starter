@@ -6,8 +6,10 @@ import com.dj.boot.canal.message.CommonMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.springframework.util.CollectionUtils;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -161,12 +163,15 @@ public class SqlBuildUtil {
                             sql.append(",");
                         }
                     }
-                    if (!CollectionUtils.isEmpty(message.getPkNames())) {
+                    if (!CollectionUtils.isEmpty(message.getOld())) {
                         sql.append(" where ");
                         for (Map<String, Object> oldDatum : message.getOld()) {
-                            for (int i = 0; i < message.getPkNames().size(); i++) {
-                                sql.append(message.getPkNames().get(i) + "=" + oldDatum.get(message.getPkNames().get(i)));
-                                if (i != message.getPkNames().size() - 1) {
+                            Iterator<String> iterator = oldDatum.keySet().iterator();
+                            while (iterator.hasNext()) {
+                                String next = iterator.next();
+                                Object o = oldDatum.get(next);
+                                sql.append(next + "=" + o);
+                                if (iterator.hasNext()) {
                                     sql.append(" and ");
                                 }
                             }
