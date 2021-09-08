@@ -23,6 +23,7 @@ public interface MessageSubscriber {
     /**
      * message subscriber
      * @param commonMessages
+     * @return ConsumeStatus 消费状态{@link ConsumeStatus}
      */
     ConsumeStatus watch(List<CommonMessage> commonMessages);
 

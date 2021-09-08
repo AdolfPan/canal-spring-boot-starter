@@ -14,6 +14,11 @@ package com.dj.boot.canal.lang;
  */
 public enum ConsumeStatus {
 
-    success, fail, hangup
+    //消费成功
+    success,
+    //消费失败
+    fail,
+    //消息挂起（锁）
+    hangup
 
 }
