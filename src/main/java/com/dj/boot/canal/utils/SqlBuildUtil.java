@@ -163,16 +163,34 @@ public class SqlBuildUtil {
                             sql.append(",");
                         }
                     }
+
+                    boolean isPk = false;
                     if (!CollectionUtils.isEmpty(message.getOld())) {
-                        sql.append(" where ");
+                        sql.append(" where 1 = 1 ");
                         for (Map<String, Object> oldDatum : message.getOld()) {
                             Iterator<String> iterator = oldDatum.keySet().iterator();
                             while (iterator.hasNext()) {
                                 String next = iterator.next();
+                                if (!CollectionUtils.isEmpty(message.getPkNames())
+                                        && message.getPkNames().contains(next)) {
+                                    isPk = true;
+                                }
                                 Object o = oldDatum.get(next);
-                                sql.append(next + "=" + o);
-                                if (iterator.hasNext()) {
-                                    sql.append(" and ");
+                                sql.append(" and ").append(next + "=" + o);
+                            }
+                        }
+                    }
+
+                    if (!isPk && !CollectionUtils.isEmpty(message.getPkNames())) {
+                        if (sql.indexOf("where") < 0) {
+                            sql.append(" where 1 = 1 ");
+                        }
+                        Iterator<String> iterator = message.getPkNames().iterator();
+                        while (iterator.hasNext()) {
+                            String next = iterator.next();
+                            for (Map<String, Object> dt : message.getData()) {
+                                if (dt.containsKey(next)) {
+                                    sql.append(" and ").append(next + "=" + dt.get(next));
                                 }
                             }
                         }
