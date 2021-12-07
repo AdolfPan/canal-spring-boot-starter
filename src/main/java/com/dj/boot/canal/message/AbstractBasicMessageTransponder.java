@@ -44,16 +44,13 @@ public abstract class AbstractBasicMessageTransponder extends AbstractMessageCon
     protected void postMsg(List<Object> messages, CanalConnector connector, long batchId, String instance, PostCall call) {
         try {
             if (CollectionUtils.isEmpty(messages)) {
-                log.warn("Message list is empty.");
                 return;
             }
             if (CollectionUtils.isEmpty(subscribers)) {
-                log.warn("Subscriber list is empty.");
                 call.call(true);
                 return;
             }
             if (StringUtils.isBlank(instance)) {
-                log.warn("Subscriber instance cannot be empty.");
                 call.call(true);
                 return;
             }

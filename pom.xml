@@ -3,9 +3,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.dj.pom</groupId>
-        <artifactId>dj-version-tag</artifactId>
-        <version>1.0-RELEASE</version>
+        <groupId>com.dj</groupId>
+        <artifactId>dj-parent</artifactId>
+        <version>0.0.2-RELEASE</version>
     </parent>
 
     <groupId>com.dj.boot</groupId>
