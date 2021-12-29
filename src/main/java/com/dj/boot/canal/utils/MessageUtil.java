@@ -161,27 +161,12 @@ public final class MessageUtil {
         if (!message.getIsDdl()) {
             List<Map<String, Object>> data = Lists.newArrayList();
             if (!CollectionUtils.isEmpty(message.getData())) {
-                Map put = Maps.newLinkedHashMap();
                 for (Map<String, String> datum : message.getData()) {
-                    if (!CollectionUtils.isEmpty(datum)) {
-                        Iterator<String> iterator = datum.keySet().iterator();
-                        while (iterator.hasNext()) {
-                            String next = iterator.next();
-                            String baseV = datum.get(next);
-                            Object val = StringUtils.isBlank(baseV)?
-                                    null:
-                                    JdbcTypeUtil.typeConvert(message.getTable(),
-                                            next,
-                                            baseV,
-                                            message.getSqlType().get(next),
-                                            message.getMysqlType().get(next));
-                            put.put(next, val);
-                        }
+                    Map put = Maps.newLinkedHashMap();
+                    buildData(message, datum, put);
+                    if (!CollectionUtils.isEmpty(put)) {
+                        data.add(put);
                     }
-                }
-
-                if (!CollectionUtils.isEmpty(put)) {
-                    data.add(put);
                 }
                 msg.setData(data);
             }
@@ -190,21 +175,7 @@ public final class MessageUtil {
             if (!CollectionUtils.isEmpty(message.getOld())) {
                 Map put = Maps.newLinkedHashMap();
                 for (Map<String, String> datum : message.getOld()) {
-                    if (!CollectionUtils.isEmpty(datum)) {
-                        Iterator<String> iterator = datum.keySet().iterator();
-                        while (iterator.hasNext()) {
-                            String next = iterator.next();
-                            String baseV = datum.get(next);
-                            Object val = StringUtils.isBlank(baseV)?
-                                    null:
-                                    JdbcTypeUtil.typeConvert(message.getTable(),
-                                            next,
-                                            baseV,
-                                            message.getSqlType().get(next),
-                                            message.getMysqlType().get(next));
-                            put.put(next, val);
-                        }
-                    }
+                    buildData(message, datum, put);
                 }
                 if (!CollectionUtils.isEmpty(put)) {
                     old.add(put);
@@ -214,5 +185,24 @@ public final class MessageUtil {
         }
         return msg;
     }
+
+    private static void buildData(FlatMessage message, Map<String, String> datum, Map put) {
+        if (!CollectionUtils.isEmpty(datum)) {
+            Iterator<String> iterator = datum.keySet().iterator();
+            while (iterator.hasNext()) {
+                String next = iterator.next();
+                String baseV = datum.get(next);
+                Object val = StringUtils.isBlank(baseV)?
+                        null:
+                        JdbcTypeUtil.typeConvert(message.getTable(),
+                                next,
+                                baseV,
+                                message.getSqlType().get(next),
+                                message.getMysqlType().get(next));
+                put.put(next, val);
+            }
+        }
+    }
+
 
 }
